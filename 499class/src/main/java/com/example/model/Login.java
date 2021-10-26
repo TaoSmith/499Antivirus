@@ -2,24 +2,32 @@ package com.example.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.mindrot.jbcrypt.*;
 
 @Data
 @AllArgsConstructor
 public class Login {
-	private String password;
+	private String passwordHash;
 	private String userName;
 	
-	public String getPassword() {
-		return password;
+	public Login(String userName, String password) {
+		this.userName = userName;
+		this.passwordHash = BCrypt.hashpw(password, BCrypt.gensalt());
 	}
-	public void setPassword(String password) {
-		this.password = password;
+	
+	public void changePassword(String newPassword) {
+		this.passwordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt());
 	}
 	public String getUserName() {
 		return userName;
 	}
-	public void setUserName(String userName) {
-		this.userName = userName;
+	
+	public boolean loginCheck(String username, String password) {
+		if(username == this.userName && BCrypt.checkpw(password, passwordHash)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }

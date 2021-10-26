@@ -19,6 +19,12 @@ public class User {
 	    //private List<ScanHistory> scanHistoryArray;
 	    private Login login;
 	    
+	    public User(String FirstName, String LastName, String UserName, String Password) {
+	    	this.firstName = FirstName;
+	    	this.lastName = LastName;
+	    	login = new Login(UserName, Password);
+	    }
+	    
 		public String getFirstName() {
 			return firstName;
 		}
@@ -46,9 +52,5 @@ public class User {
 		public Login getLogin() {
 			return login;
 		}
-		public void setLogin(Login login) {
-			this.login = login;
-		}
-		
 
 }

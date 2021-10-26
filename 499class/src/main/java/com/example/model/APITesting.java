@@ -16,17 +16,24 @@ import java.util.Map;
 
 public class APITesting {
 	
+	private VTapiKey VTkey;
+	private ScanInfo scanInformation;
+	private FileScanReport report;
+	
 	public APITesting() {
+		VTkey = new VTapiKey();
+		this.scanInformation = null;
+		this.report = null;
 	}
 	
 	@SuppressWarnings("finally")
 	public String scanFile() {
 		String scanReturn = null;
         try {
-            VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey("dab79ae1e4da82bb8803d148591f12fff2eec698ea1c73802f5426197837c456");
+            VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey(VTkey.getVTKey());
             VirustotalPublicV2 virusTotalRef = new VirustotalPublicV2Impl();
 
-            ScanInfo scanInformation = virusTotalRef.scanFile(new File("src/main/java/com/example/model/eicar.txt"));
+            scanInformation = virusTotalRef.scanFile(new File("src/main/java/com/example/model/eicar.txt"));
 
             scanReturn = "___SCAN INFORMATION___\n"
             		+ "MD5 :\t" + scanInformation.getMd5() +"\n"
@@ -56,11 +63,12 @@ public class APITesting {
 		String reportReturn = null;
 		String mapReturn = "";
         try {
-            //VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey("APIKEY");
+            VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey(VTkey.getVTKey());
             VirustotalPublicV2 virusTotalRef = new VirustotalPublicV2Impl();
 
-            String resource="275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f";
-            FileScanReport report = virusTotalRef.getScanReport(resource);
+            //String resource="275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f";
+            String resource = scanInformation.getResource();
+            report = virusTotalRef.getScanReport(resource);
 
             reportReturn =  "___REPORT INFORMATION___\n"
             		+ "MD5 :\t" + report.getMd5() +"\n"

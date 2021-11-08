@@ -87,7 +87,7 @@ public class APITesting {
             for (String key : scans.keySet()) {
                 VirusScanInfo virusInfo = scans.get(key);
                 mapReturn += "Scanner : " + key +"\n"
-                + "\t\t Resut : " + virusInfo.getResult() +"\n"
+                + "\t\t Result : " + virusInfo.getResult() +"\n"
                 + "\t\t Update : " + virusInfo.getUpdate() +"\n"
                 + "\t\t Version :" + virusInfo.getVersion();
             }

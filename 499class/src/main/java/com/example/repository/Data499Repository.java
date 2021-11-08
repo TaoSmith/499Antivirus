@@ -8,5 +8,6 @@ import com.example.model.User;
 
 public interface Data499Repository extends MongoRepository<User, Integer>{
 	List<User> findByFirstName(String name);
+	User findByUserName(String string);
 
 }

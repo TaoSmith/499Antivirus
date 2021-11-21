@@ -1,15 +1,16 @@
 package com.example.model;
 
 import java.beans.ConstructorProperties;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import com.example.model.*;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.*;
+import org.springframework.data.mongodb.core.mapping.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+
 @Data
 @AllArgsConstructor
 @Document(collection = "users_DB")
@@ -18,8 +19,9 @@ public class User {
 		private String userName;
 	 	private String firstName;
 	    private String lastName;
-	    //private List<ScanHistory> scanHistoryArray;
 	    private Login login;
+	    @DBRef
+	    private List<UploadedFile> scanHistoryArray;
 	    
 	    @ConstructorProperties({"firstName", "lastName", "userName", "password"})
 	    public User(String firstName, String lastName, String userName, String password) {
@@ -27,6 +29,7 @@ public class User {
 	    	this.lastName = lastName;
 	    	this.userName = userName;
 	    	login = new Login(userName, password);
+	    	scanHistoryArray = new ArrayList<UploadedFile>();
 	    }
 	    
 	   public User() {
@@ -49,15 +52,17 @@ public class User {
 		public String getUserName() {
 			return userName;
 		}
-//		public List<ScanHistory> getScanHistoryArray() {
-//			return scanHistoryArray;
-//		}
-//		public void setScanHistoryArray(List<ScanHistory> scanHistoryArray) {
-//			this.scanHistoryArray = scanHistoryArray;
-//		}
+
 		public Login getLogin() {
 			return login;
 		}
-
+		
+		public List<UploadedFile> getScanHistoryArray() {
+			return scanHistoryArray;
+		}
+		
+		public void addFile(File file) {
+			scanHistoryArray.add(new UploadedFile(file));
+		}
 }
 

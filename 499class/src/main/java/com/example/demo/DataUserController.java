@@ -1,20 +1,22 @@
 package com.example.demo;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.model.APITesting;
-import com.example.model.Login;
-import com.example.model.User;
+import com.example.model.*;
 import com.example.repository.Data499Repository;
+import com.kanishka.virustotal.dto.FileScanReport;
+
 
 @RestController
 @RequestMapping("")
@@ -25,6 +27,18 @@ public class DataUserController {
 	
 	@PostMapping("/addUserNow")
 	public User addUser(@RequestBody User user) {
+		User test_user = repository.findByUserName(user.getUserName());
+		if(test_user == null) {
+			repository.save(user);
+			return user;
+		}
+		else {
+			return null;
+		}
+	}
+	
+	@PutMapping("/update")
+	public User updateUser(@RequestBody User user) {
 		System.out.println(user.getFirstName());
 		System.out.println(user.getLastName());
 		System.out.println(user.getUserName());
@@ -33,27 +47,16 @@ public class DataUserController {
 	}
 	
 	@PostMapping("/login")
-	public User login(@RequestBody Map<String, String> json) {
-		System.out.println("In Login");
-		System.out.println(json.get("username"));
-		System.out.println(json.get("password"));
+	public User login(@RequestBody Map<String, String> json) {		
 		User user = repository.findByUserName(json.get("username"));
 		Login login = user.getLogin();
 		boolean logincheck = login.loginCheck(json.get("username"), json.get("password"));
-		if(logincheck==true) {
-			System.out.print("LoginCheck: Cleared");
+		if(logincheck) {
 			return user;
-		} else {
-			System.out.println("LoginCheck: Failed");
-			return null;
-		}
-
-		/**if(passwordCheck) {
-			return findByUserName(json.get("username"));
 		}
 		else {
 			return null;
-		}**/
+		}
 	}
 
 	@GetMapping("/getUserByFirstName/{name}")
@@ -67,16 +70,35 @@ public class DataUserController {
     return String.format("Hello %s!", name);
 	}
 	
-	//Tests eicar text file (this file might be caught by antivirus)
-	//Limited submissions of this test
+	@PostMapping("/scan")
+	public String scanFileUpload(@RequestBody String filePath) {
+		File fileToUpload = new File(filePath);
+		UploadedFile newFile = new UploadedFile(fileToUpload);
+		newFile.scanFile();
+		newFile.retrieveFileReport();
+		return newFile.BasicReturnInfo();
+	}
+	
+/*	@PostMapping("/uploadFile")
+	public FileScanReport addFile(@RequestBody UploadedFile file) {
+		System.out.println(file.getFileName());
+		file.scanFile();
+		file.getFileScanReport();
+		repository.save(file);
+		return file.getFileScanReport();
+	}*/
+		
+		//Tests eicar text file (this file might be caught by antivirus)
+		//Limited submissions of this test
 	@GetMapping("/test")
-	public String report() {
-		APITesting scan = new APITesting();
-		String fileString = null;
-		String fileScan = scan.scanFile();
-		String fileReport = scan.getFileScanReport();
-		fileString = fileScan +"\n"+ fileReport;
-		return fileString;
+	public String uploadedFileFormat() {
+		File fileToUpload = new File("src/main/java/com/example/model/eicar.txt");
+		UploadedFile newFile = new UploadedFile(fileToUpload);
+		newFile.scanFile();
+		newFile.retrieveFileReport();
+		String returnFormat = newFile.BasicReturnInfo();
+		System.out.println(returnFormat);
+		return returnFormat;
 	}
 
 }

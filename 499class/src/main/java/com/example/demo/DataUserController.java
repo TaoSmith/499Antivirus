@@ -1,8 +1,10 @@
 package com.example.demo;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,12 +13,16 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.example.model.*;
+import com.example.model.APITesting;
+import com.example.model.Login;
+import com.example.model.ScanHistory;
+import com.example.model.UploadedFile;
+import com.example.model.User;
 import com.example.repository.Data499Repository;
-import com.kanishka.virustotal.dto.FileScanReport;
-
 
 @RestController
 @RequestMapping("")
@@ -39,9 +45,6 @@ public class DataUserController {
 	
 	@PutMapping("/update")
 	public User updateUser(@RequestBody User user) {
-		System.out.println(user.getFirstName());
-		System.out.println(user.getLastName());
-		System.out.println(user.getUserName());
 		repository.save(user);
 		return user;
 	}
@@ -70,35 +73,70 @@ public class DataUserController {
     return String.format("Hello %s!", name);
 	}
 	
-	@PostMapping("/scan")
-	public String scanFileUpload(@RequestBody String filePath) {
-		File fileToUpload = new File(filePath);
-		UploadedFile newFile = new UploadedFile(fileToUpload);
-		newFile.scanFile();
-		newFile.retrieveFileReport();
-		return newFile.BasicReturnInfo();
+	@PostMapping("/upload")
+	@ResponseBody
+	public ScanHistory upload(@RequestBody MultipartFile file, String name) throws IllegalStateException, IOException {
+		User cur = repository.findByUserName(name);
+		String fname = file.getOriginalFilename();
+		File newFile = multipartToFile(file, fname);
+		UploadedFile upload = new UploadedFile(newFile, newFile.getName());
+		upload.scanFile();
+		upload.retrieveFileReport();
+		Boolean bool = false;
+		if(upload.isReportDone() == false) {
+			ScanHistory scan = new ScanHistory(fname, bool);
+			cur.addScanHistory(scan);
+			repository.save(cur);
+			return scan;
+		}
+		upload.BasicReturnInfo();
+		double positives = 0;
+		if(upload.getFileReport().getScans() != null) {
+			positives = upload.getFileReport().getPositives();
+			double total = upload.getFileReport().getTotal();
+			double percent = ((double)positives/total)*100;
+			if(percent > 10) {
+				bool = true;
+			}
+		}
+		ScanHistory scan = new ScanHistory(fname, bool);
+		cur.addScanHistory(scan);
+		repository.save(cur);
+		return scan;
 	}
 	
-/*	@PostMapping("/uploadFile")
-	public FileScanReport addFile(@RequestBody UploadedFile file) {
-		System.out.println(file.getFileName());
-		file.scanFile();
-		file.getFileScanReport();
-		repository.save(file);
-		return file.getFileScanReport();
-	}*/
-		
-		//Tests eicar text file (this file might be caught by antivirus)
-		//Limited submissions of this test
+	//Tests eicar text file (this file might be caught by antivirus)
+	//Limited submissions of this test
 	@GetMapping("/test")
-	public String uploadedFileFormat() {
-		File fileToUpload = new File("src/main/java/com/example/model/eicar.txt");
-		UploadedFile newFile = new UploadedFile(fileToUpload);
-		newFile.scanFile();
-		newFile.retrieveFileReport();
-		String returnFormat = newFile.BasicReturnInfo();
-		System.out.println(returnFormat);
-		return returnFormat;
+	public String report() {
+		APITesting scan = new APITesting();
+		String fileString = null;
+		String fileScan = scan.scanFile();
+		String fileReport = scan.getFileScanReport();
+		fileString = fileScan +"\n"+ fileReport;
+		return fileString;
+	}
+	
+	@GetMapping("/scan")
+	public String scanFileUpload() {
+		APITesting scan = new APITesting();
+		String fileString = null;
+		String fileScan = scan.scanFile();
+		String fileReport = scan.getFileScanReport();
+		fileString = fileScan + "\n" + fileReport;
+		return fileString;
+	}
+	
+	@PostMapping("/getScanHistory")
+	public List<ScanHistory> getUserScanHistory(String name){
+		User cur = repository.findByUserName(name);
+		return cur.getScanHistoryArray();
+	}
+	
+	public static File multipartToFile(MultipartFile multipart, String fileName) throws IllegalStateException, IOException {
+	    File convFile = new File(System.getProperty("java.io.tmpdir")+"/"+fileName);
+	    multipart.transferTo(convFile);
+	    return convFile;
 	}
 
 }

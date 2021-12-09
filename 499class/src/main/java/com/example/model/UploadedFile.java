@@ -1,16 +1,11 @@
 package com.example.model;
 
-import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import org.springframework.data.annotation.*;
-import org.springframework.data.mongodb.core.mapping.*;
-
 import com.kanishka.virustotal.dto.FileScanReport;
 import com.kanishka.virustotal.dto.ScanInfo;
 import com.kanishka.virustotal.dto.VirusScanInfo;
@@ -22,40 +17,52 @@ import com.kanishka.virustotalv2.VirustotalPublicV2Impl;
 
 @Data
 @AllArgsConstructor
-@Document(collection = "files_DB")
 public class UploadedFile {
 	private File file;
-	@Id
-	private String fileName;
-	@Field(name = "reportDone")
+	private String pathName;
 	private boolean reportDone;
-	@Field(name = "scanDone")
 	private boolean scanDone;
-	@Field(name = "scan")
 	private ScanInfo scanInformation;
-	@Field(name = "report")
 	private FileScanReport report;
 	private VTapiKey VTkey;
 	
-	@ConstructorProperties({"file"})
-	public UploadedFile(File file) {
+	public UploadedFile(File file, String pathName) {
 		super();
 		this.file = file;
-		this.fileName = file.getName();
+		this.pathName = pathName;
 		this.reportDone = false;
 		this.scanDone = false;
 		this.scanInformation = null;
 		this.report = null;
 		this.VTkey = new VTapiKey();
 	}
+	
+	public UploadedFile(File file) {
+		super();
+		this.file = file;
+		this.reportDone = false;
+		this.scanDone = false;
+		this.scanInformation = null;
+		this.report = null;
+		this.VTkey = new VTapiKey();
+	}
+	
+	public UploadedFile() {
+		
+	}
+	
 	public File getFile() {
 		return file;
 	}
-
-	public String getFileName() {
-		return fileName;
+	public void setFile(File file) {
+		this.file = file;
 	}
-	
+	public String getPathName() {
+		return pathName;
+	}
+	public void setPathName(String pathName) {
+		this.pathName = pathName;
+	}
 	public Boolean isScanDone() {
 		return scanDone;
 	}
@@ -91,6 +98,10 @@ public class UploadedFile {
             //String resource="275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f";
             String resource = scanInformation.getResource();
             report = virusTotalRef.getScanReport(resource);
+            while(report == null) {
+            	wait(2000);
+            	report = virusTotalRef.getScanReport(resource);
+            }
             this.reportDone = true;
             
         } catch (APIKeyNotFoundException ex) {
@@ -103,14 +114,17 @@ public class UploadedFile {
             System.err.println("Something Bad Happened! " + ex.getMessage());
         } 
     }
-	
-	public FileScanReport getFileScanReport() {
+	public FileScanReport getFileReport() {
 		return report;
+	}
+
+	public String getName() {
+		return file.getName();
 	}
 	
 	public String BasicReturnInfo() {
 		String reportInfo = "___REPORT INFORMATION___\n"
-				+ "Name: "+ fileName +"\n"
+				+ "Name: "+ file.getName() +"\n"
         		+ "MD5 :\t" + report.getMd5() +"\n"
         		+ "Perma link :\t" + report.getPermalink() +"\n"
         		+ "Resourve :\t" + report.getResource() +"\n"
@@ -118,6 +132,7 @@ public class UploadedFile {
         		+ "Total :\t" + report.getTotal() +"\n";
 		String mapReturn = null;
 		Map<String, VirusScanInfo> scans = report.getScans();
+		if(scans != null) {
         for (String key : scans.keySet()) {
             VirusScanInfo virusInfo = scans.get(key);
             mapReturn += "Scanner : " + key +"\n"
@@ -125,7 +140,9 @@ public class UploadedFile {
             + "\t\t Update : " + virusInfo.getUpdate() +"\n"
             + "\t\t Version :" + virusInfo.getVersion()+"\n";
         }
+		}
         String returnString = reportInfo + mapReturn;
         return returnString;
 	}
+	
 }

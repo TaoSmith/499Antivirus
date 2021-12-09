@@ -8,9 +8,10 @@
 		<version>2.5.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+	<packaging>war</packaging>
 	<groupId>com.example</groupId>
 	<artifactId>499class</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.3</version>
 	<name>499class</name>
 	<description>Demo project for 499</description>
 	<properties>
@@ -54,13 +55,6 @@
     <artifactId>jbcrypt</artifactId>
     <version>0.4</version>
 </dependency>
-<!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-mongodb -->
-<dependency>
-    <groupId>org.springframework.data</groupId>
-    <artifactId>spring-data-mongodb</artifactId>
-    <version>3.3.0</version>
-</dependency>
-
 
 	</dependencies>
 

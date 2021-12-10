@@ -94,8 +94,6 @@ public class UploadedFile {
         try {
             VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey(VTkey.getVTKey());
             VirustotalPublicV2 virusTotalRef = new VirustotalPublicV2Impl();
-
-            //String resource="275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f";
             String resource = scanInformation.getResource();
             report = virusTotalRef.getScanReport(resource);
             while(report == null) {
